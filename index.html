@@ -190,6 +190,54 @@ footer strong{color:var(--ink)}
   html{scroll-behavior:auto}
   .bar span{transition:none}
 }
+/* Prévention des blessures */
+.inj-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
+.inj-chips .chip{font-size:1rem;padding:8px 16px}
+.inj-chips .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.inj-panel{margin-top:18px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px 20px;border-top:6px solid var(--signal)}
+.inj-panel h3{margin-bottom:4px}
+.inj-panel .what{color:var(--muted);margin-bottom:6px}
+.inj-panel h4{font-family:var(--display);font-weight:700;font-size:1.25rem;margin:22px 0 8px;line-height:1}
+.inj-panel ul{margin:0;padding-left:20px}
+.inj-panel li{margin-bottom:6px}
+.inj-alert{margin-top:20px;padding:12px 14px;border-radius:10px;background:var(--bg);border:1px solid var(--line);border-left:6px solid #D93025;font-size:.97rem}
+.inj-alert b{display:block;margin-bottom:2px}
+.inj-empty{color:var(--muted);padding:6px 0}
+.inj-red{margin-top:22px;background:var(--surface);border:1px solid var(--line);border-left:6px solid #D93025;border-radius:12px;padding:16px 18px}
+.inj-red h3{font-size:1.4rem;margin-bottom:8px}
+.inj-red ul{margin:0;padding-left:20px}
+.inj-red li{margin-bottom:6px}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .inj-alert,:root:not([data-theme="light"]) .inj-red{border-left-color:#FF8A80}}
+:root[data-theme="dark"] .inj-alert,:root[data-theme="dark"] .inj-red{border-left-color:#FF8A80}
+/* Défi 30 jours + carnet */
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+input[type=date]{font:inherit;font-size:1.1rem;color:var(--ink);background:var(--bg);border:2px solid var(--line);border-radius:8px;padding:9px 10px;width:100%;min-height:46px}
+.mission{background:var(--surface);border:1px solid var(--line);border-top:6px solid var(--signal);border-radius:14px;padding:18px 20px;margin-top:22px}
+.mission .k{font-family:var(--display);font-weight:800;font-size:2rem;line-height:1}
+.mission p{margin:6px 0 0}
+.days{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:8px;margin-top:16px}
+.day{font:inherit;font-weight:700;font-size:1.05rem;height:54px;border-radius:10px;border:2px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;position:relative}
+.day small{display:block;font-size:.65rem;font-weight:600;color:var(--muted);line-height:1}
+.day[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.day[aria-pressed="true"] small{color:var(--accent-ink)}
+.day.sel{outline:3px solid var(--signal);outline-offset:2px}
+.day.rest{border-style:dashed}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:20px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.stat .v{font-family:var(--display);font-weight:800;font-size:2rem;line-height:1}
+.stat .l{color:var(--muted);font-size:.85rem;font-weight:600}
+.cform{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;margin-top:22px}
+.feel{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 14px}
+.wbars{display:flex;align-items:flex-end;gap:8px;height:120px;margin-top:22px;padding:12px 12px 0;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.wb{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;min-width:0}
+.wb i{display:block;width:100%;background:var(--accent);border-radius:6px 6px 0 0;min-height:2px}
+.wb span{font-size:.72rem;color:var(--muted);font-weight:600;margin:4px 0}
+.ent{display:grid;grid-template-columns:1fr auto;gap:2px 12px;align-items:center;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:10px 14px;margin-top:8px}
+.ent .a{font-weight:700}
+.ent .b{color:var(--muted);font-size:.93rem;grid-column:1}
+.ent button{grid-row:1/3;grid-column:2;font:inherit;font-weight:600;border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:6px 12px;cursor:pointer}
+.linkbtn{font:inherit;font-weight:600;border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:8px 16px;cursor:pointer;margin-top:14px}
+@media(max-width:480px){.stats{grid-template-columns:1fr 1fr 1fr}.stat .v{font-size:1.6rem}}
 </style>
 <script>try{if(localStorage.getItem('pl-ok')==='1')document.documentElement.classList.add('open')}catch(e){}</script>
 <style>
@@ -224,8 +272,11 @@ html.open #gate{display:none}
       <a href="#niveaux">Niveaux</a>
       <a href="#sur-mesure">Sur mesure</a>
       <a href="#outils">Outils</a>
+      <a class="opt" href="#defi">Défi 30 j</a>
+      <a class="opt" href="#carnet">Carnet</a>
       <a href="#videos">Vidéos</a>
       <a href="#nutrition">Nutrition</a>
+      <a class="opt" href="#blessures">Blessures</a>
       <a class="opt" href="#bases">Les bases</a>
     </nav>
   </div>
@@ -316,7 +367,7 @@ html.open #gate{display:none}
 
   <section id="outils" style="padding-top:12px">
     <div class="wrap">
-      <h2>Deux outils pratiques</h2>
+      <h2>Trois outils pratiques</h2>
       <div class="tools">
         <div class="card">
           <h3>Calculateur d’allure</h3>
@@ -344,7 +395,67 @@ html.open #gate{display:none}
           </div>
           <div class="result" id="fcOut" aria-live="polite"></div>
         </div>
+
+        <div class="card" style="grid-column:1/-1">
+          <h3>Prédicteur de temps de course</h3>
+          <p class="sm">Entre un chrono récent sur une distance : tu vois ce que tu peux viser sur les autres.</p>
+          <div class="chips" id="pchips">
+            <button class="chip" data-d="5">5 km</button>
+            <button class="chip" data-d="10">10 km</button>
+            <button class="chip" data-d="21.0975">Semi</button>
+            <button class="chip" data-d="42.195">Marathon</button>
+          </div>
+          <div class="row">
+            <label class="field">Distance (km)<input type="number" id="pdist" inputmode="decimal" min="0" step="0.1" value="10"></label>
+            <label class="field">Heures<input type="number" id="phh" inputmode="numeric" min="0" value="0"></label>
+            <label class="field">Minutes<input type="number" id="pmm" inputmode="numeric" min="0" max="59" value="55"></label>
+            <label class="field">Secondes<input type="number" id="pss" inputmode="numeric" min="0" max="59" value="0"></label>
+          </div>
+          <div class="result" id="predOut" aria-live="polite"></div>
+          <p class="sm" style="margin:12px 0 0">Estimation théorique (formule de Riegel). Elle est plus fiable entre distances proches. Pour un marathon, elle suppose un entraînement spécifique avec des sorties longues : sans cela, vise plus prudent.</p>
+        </div>
       </div>
+    </div>
+  </section>
+
+  <section id="defi" style="padding-top:12px">
+    <div class="wrap">
+      <h2>Défi 30 jours</h2>
+      <p class="intro-sub">Un mois pour installer l’habitude. Touche un jour pour voir la séance, puis coche-le quand c’est fait. Ta progression est gardée sur cet appareil.</p>
+      <div class="mission" id="dMission" aria-live="polite"></div>
+      <div class="progress" style="margin-top:18px"><span id="dTxt">0 / 30</span><div class="bar"><span id="dBar"></span></div></div>
+      <div class="days" id="dDays"></div>
+      <p class="note">Si un jour est trop dur, fais plus court ou marche. Mieux vaut une petite séance qu’aucune. Ne rattrape pas les jours manqués en doublant.</p>
+      <button class="linkbtn" id="dReset" type="button">Recommencer le défi</button>
+    </div>
+  </section>
+
+  <section id="carnet" style="padding-top:12px">
+    <div class="wrap">
+      <h2>Mon carnet de séances</h2>
+      <p class="intro-sub">Note chaque sortie pour voir ta progression. Les données restent sur cet appareil et dans ce navigateur.</p>
+
+      <div class="stats" aria-live="polite">
+        <div class="stat"><div class="v" id="sKm">0</div><div class="l">km au total</div></div>
+        <div class="stat"><div class="v" id="sN">0</div><div class="l">séances</div></div>
+        <div class="stat"><div class="v" id="sWk">0</div><div class="l">km cette semaine</div></div>
+      </div>
+      <div class="wbars" id="cBars" role="img" aria-label="Kilomètres par semaine sur les 8 dernières semaines"></div>
+
+      <div class="cform">
+        <div class="row">
+          <label class="field">Date<input type="date" id="cDate"></label>
+          <label class="field">Distance (km)<input type="number" id="cKm" inputmode="decimal" min="0" step="0.1" placeholder="5"></label>
+          <label class="field">Durée (min)<input type="number" id="cMin" inputmode="numeric" min="0" placeholder="30"></label>
+        </div>
+        <div class="fl">Ressenti</div>
+        <div class="feel" id="cFeel"></div>
+        <button class="go" id="cAdd" type="button">Ajouter la séance</button>
+        <div class="err" id="cErr" role="alert" style="color:var(--muted);margin-top:8px;min-height:1.4em"></div>
+      </div>
+
+      <div id="cList"></div>
+      <button class="linkbtn" id="cClear" type="button" hidden>Effacer le carnet</button>
     </div>
   </section>
 
@@ -507,6 +618,31 @@ html.open #gate{display:none}
       </div>
 
       <p class="nutri-note">Ces conseils sont des repères généraux. Si tu as un diabète, une allergie, un régime particulier ou un doute, demande l’avis d’un médecin ou d’un diététicien.</p>
+    </div>
+  </section>
+
+  <section id="blessures" style="padding-top:12px">
+    <div class="wrap">
+      <h2>Prévenir les blessures</h2>
+      <p class="intro-sub">Où as-tu mal, ou où veux-tu éviter d’avoir mal ? Touche une zone pour voir les causes fréquentes, quoi faire et comment la protéger.</p>
+
+      <div class="inj-chips" id="injChips" role="group" aria-label="Zone du corps"></div>
+      <div class="inj-panel" id="injPanel" aria-live="polite">
+        <p class="inj-empty">Choisis une zone ci-dessus.</p>
+      </div>
+
+      <div class="inj-red">
+        <h3>Consulte sans attendre si…</h3>
+        <ul>
+          <li>la douleur est vive, soudaine, ou tu as entendu un « claquement » ;</li>
+          <li>tu ne peux plus poser le pied ou marcher normalement ;</li>
+          <li>la zone est très gonflée, chaude, rouge ou déformée ;</li>
+          <li>tu as des fourmillements, un engourdissement ou une perte de force ;</li>
+          <li>la douleur te réveille la nuit ou ne passe pas après 1 à 2 semaines de repos.</li>
+        </ul>
+      </div>
+
+      <p class="nutri-note">Ces repères sont généraux et ne remplacent pas un diagnostic. En cas de doute, demande l’avis d’un médecin ou d’un kinésithérapeute.</p>
     </div>
   </section>
 
@@ -1059,6 +1195,214 @@ html.open #gate{display:none}
     out.scrollIntoView({behavior:'smooth', block:'start'});
   }
   document.getElementById('pm-go').addEventListener('click', generate);
+})();
+</script>
+<script>
+(function(){
+  var Z=[
+   {id:'tibia',n:'Devant le tibia',t:'Périostite tibiale (« shin splints »)',
+    w:'Douleur le long de l’os de la jambe, souvent au début de la course, qui peut s’atténuer en chauffant.',
+    c:['Trop de volume ou d’intensité trop vite','Sol dur ou chaussures usées','Mollets et pieds peu renforcés'],
+    d:['Réduis ou arrête la course quelques jours, remplace par vélo ou natation','Reprends progressivement, sur terrain souple','Glace 10 à 15 minutes si ça te soulage'],
+    p:['Renforcement des mollets (montées sur pointes)','Marche sur les pointes et sur les talons','Chaussures changées tous les 600 à 800 km'],
+    a:'Une douleur précise sur un point de l’os, qui persiste au repos ou la nuit, peut être une fracture de fatigue : consulte.'},
+   {id:'genou',n:'Devant le genou',t:'Syndrome fémoro-patellaire (« genou du coureur »)',
+    w:'Douleur autour ou sous la rotule, surtout en descente, dans les escaliers ou après être resté assis.',
+    c:['Fessiers et cuisses trop faibles','Augmentation rapide du kilométrage','Beaucoup de descentes'],
+    d:['Diminue la distance et évite les longues descentes','Garde l’activité qui ne fait pas mal (vélo, natation)','Reprends quand la montée d’escalier ne fait plus mal'],
+    p:['Squats et fentes lents et contrôlés','Pont fessier et abduction de hanche avec élastique','Foulée plus courte et plus fréquente'],
+    a:'Genou qui gonfle, se bloque ou « lâche » : arrête et consulte.'},
+   {id:'externe',n:'Côté externe du genou',t:'Syndrome de la bandelette ilio-tibiale',
+    w:'Douleur piquante sur le côté du genou qui apparaît après une certaine distance, souvent en descente.',
+    c:['Faiblesse des muscles de la hanche (fessier moyen)','Courir toujours du même côté d’une route inclinée','Hausse trop rapide des sorties longues'],
+    d:['Raccourcis la sortie avant que la douleur apparaisse','Évite les descentes et les pistes en pente latérale','Étire doucement fessiers et haut de la cuisse'],
+    p:['Gainage latéral (planche de côté)','Marche latérale avec élastique','Varie les parcours et le sens de course'],
+    a:'Douleur qui reste forte au repos ou gonflement marqué : consulte.'},
+   {id:'achille',n:'Arrière du talon',t:'Tendinopathie du tendon d’Achille',
+    w:'Raideur et douleur au-dessus du talon, surtout le matin ou au début de la séance.',
+    c:['Reprise trop brutale ou séances de côte et de vitesse trop tôt','Mollets peu forts','Chaussures trop plates ou changement de type de chaussure'],
+    d:['Réduis la charge, évite la vitesse et les côtes','Ne t’étire pas fort le tendon douloureux','Renforce progressivement avec l’avis d’un kiné'],
+    p:['Montées sur pointes lentes, sur marche, 2 à 3 fois par semaine','Échauffement de 5 à 10 minutes avant de courir','Transition progressive entre deux paires de chaussures'],
+    a:'Douleur brutale, claquement ou impossibilité de se mettre sur la pointe du pied : possible rupture, consulte en urgence.'},
+   {id:'pied',n:'Sous le pied',t:'Fasciite plantaire',
+    w:'Douleur sous le talon ou la voûte plantaire, très marquée aux premiers pas du matin.',
+    c:['Mollets et pied raides','Chaussures trop usées ou trop souples','Hausse rapide du volume ou du poids porté'],
+    d:['Réduis la distance, privilégie les surfaces souples','Roule la plante du pied sur une balle','Évite de marcher pieds nus sur sol dur'],
+    p:['Étirements des mollets','Renforcement des petits muscles du pied (« serrer une serviette » avec les orteils)','Chaussures adaptées, changées à temps'],
+    a:'Douleur qui dure plus de quelques semaines malgré les adaptations : consulte.'},
+   {id:'cuisse',n:'Cuisse ou mollet',t:'Tension ou petite déchirure musculaire',
+    w:'Douleur localisée dans un muscle, souvent après une accélération ou en fin de séance fatigante.',
+    c:['Échauffement insuffisant','Fatigue ou séance trop rapide pour le niveau','Manque de souplesse ou de force'],
+    d:['Arrête immédiatement la séance','Repos relatif, marche si elle est sans douleur','Reprends la course seulement quand tu marches et montes les escaliers sans mal'],
+    p:['Échauffement avec quelques accélérations progressives','Renforcement des ischio-jambiers et des mollets','Évite les séances rapides quand tu es très fatigué'],
+    a:'Douleur très vive, bosse ou hématome important : consulte.'}
+  ];
+  var chips=document.getElementById('injChips'),panel=document.getElementById('injPanel');
+  if(!chips||!panel)return;
+  function li(a){return a.map(function(x){return '<li>'+x+'</li>'}).join('')}
+  function show(z){
+    panel.innerHTML='<h3>'+z.t+'</h3><p class="what">'+z.w+'</p>'+
+      '<h4>Causes fréquentes</h4><ul>'+li(z.c)+'</ul>'+
+      '<h4>Que faire</h4><ul>'+li(z.d)+'</ul>'+
+      '<h4>Comment la protéger</h4><ul>'+li(z.p)+'</ul>'+
+      '<div class="inj-alert"><b>Quand consulter</b>'+z.a+'</div>';
+    Array.prototype.forEach.call(chips.children,function(b){b.setAttribute('aria-pressed',b.dataset.id===z.id?'true':'false')});
+  }
+  Z.forEach(function(z){
+    var b=document.createElement('button');
+    b.type='button';b.className='chip';b.textContent=z.n;b.dataset.id=z.id;b.setAttribute('aria-pressed','false');
+    b.addEventListener('click',function(){show(z)});
+    chips.appendChild(b);
+  });
+})();
+</script>
+<script>
+(function(){
+  var out=document.getElementById('predOut');
+  if(!out)return;
+  var dist=document.getElementById('pdist'),hh=document.getElementById('phh'),mm=document.getElementById('pmm'),ss=document.getElementById('pss');
+  var T=[['5 km',5],['10 km',10],['Semi-marathon',21.0975],['Marathon',42.195]];
+  function pad(n){return (n<10?'0':'')+n}
+  function fmt(sec){
+    sec=Math.round(sec);var h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),s=sec%60;
+    return h>0?h+' h '+pad(m)+' min '+pad(s)+' s':m+' min '+pad(s)+' s';
+  }
+  function pace(sec,d){
+    var p=Math.round(sec/d),m=Math.floor(p/60),s=p%60;return m+':'+pad(s)+' /km';
+  }
+  function calc(){
+    var d=parseFloat(dist.value),t=(+hh.value||0)*3600+(+mm.value||0)*60+(+ss.value||0);
+    if(!(d>0)||!(t>0)){out.textContent='Entre une distance et un temps.';return}
+    var rows='<table class="zones"><tr><th>Distance</th><th>Temps estimé</th><th>Allure</th></tr>';
+    T.forEach(function(x){
+      var est=t*Math.pow(x[1]/d,1.06);
+      rows+='<tr><td>'+x[0]+'</td><td><b>'+fmt(est)+'</b></td><td>'+pace(est,x[1])+'</td></tr>';
+    });
+    out.innerHTML=rows+'</table>';
+  }
+  [dist,hh,mm,ss].forEach(function(e){e.addEventListener('input',calc)});
+  document.getElementById('pchips').addEventListener('click',function(e){
+    var b=e.target.closest('.chip');if(!b)return;dist.value=b.dataset.d;calc();
+  });
+  calc();
+})();
+</script>
+<script>
+(function(){
+  function load(k,def){try{var v=localStorage.getItem(k);return v?JSON.parse(v):def}catch(e){return def}}
+  function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+
+  /* ---------- Défi 30 jours ---------- */
+  var runs=[[20,20,25,30],[25,25,30,35],[25,30,30,40],[30,30,35,40]];
+  var D=[];
+  for(var w=0;w<4;w++){
+    var r=runs[w];
+    function run(m,first){return w===0?{t:'Course douce',d:'Alterne 1 min de trot et 2 min de marche pendant '+m+' min. Reste à une allure où tu peux parler.'}:{t:'Course facile',d:m+' min à allure facile, en pouvant parler. '+(first?'':'')}}
+    D.push(run(r[0],true));
+    D.push({t:'Marche active',d:'20 min de marche rapide. Elle aide à récupérer sans repos total.',rest:true});
+    D.push(run(r[1]));
+    D.push({t:'Renforcement',d:'15 min : 3 tours de 10 squats, 10 ponts fessiers, planche 30 s, 10 montées sur pointes.'});
+    D.push(run(r[2]));
+    D.push({t:'Repos',d:'Jour de repos. Hydrate-toi, dors bien, étire-toi doucement si tu en as envie.',rest:true});
+    D.push(w===0?{t:'Sortie un peu plus longue',d:'Alterne 1 min de trot et 2 min de marche pendant '+r[3]+' min.'}:{t:'Sortie un peu plus longue',d:r[3]+' min à allure facile. Pars lentement, tu dois finir en forme.'});
+  }
+  D.push({t:'Course facile',d:'30 min à allure facile pour se mettre en jambes.'});
+  D.push({t:'Jour final',d:'Cours 30 à 40 min à allure facile, sans pression de chrono. Bravo, tu as tenu un mois !'});
+
+  var done=load('pl-defi',[]);if(!Array.isArray(done))done=[];
+  var sel=-1;
+  var dDays=document.getElementById('dDays'),dM=document.getElementById('dMission'),dBar=document.getElementById('dBar'),dTxt=document.getElementById('dTxt');
+  function isDone(i){return done.indexOf(i)>-1}
+  function next(){for(var i=0;i<30;i++){if(!isDone(i))return i}return -1}
+  function drawDefi(){
+    dDays.innerHTML='';
+    D.forEach(function(x,i){
+      var b=document.createElement('button');
+      b.type='button';b.className='day'+(x.rest?' rest':'')+(i===sel?' sel':'');
+      b.setAttribute('aria-pressed',isDone(i)?'true':'false');
+      b.setAttribute('aria-label','Jour '+(i+1)+', '+x.t+(isDone(i)?', fait':''));
+      b.innerHTML=(isDone(i)?'✓':(i+1))+'<small>'+(isDone(i)?(i+1):'J'+(i+1))+'</small>';
+      b.addEventListener('click',function(){
+        if(sel===i){var p=done.indexOf(i);if(p>-1)done.splice(p,1);else done.push(i);save('pl-defi',done)}
+        else sel=i;
+        drawDefi();
+      });
+      dDays.appendChild(b);
+    });
+    var n=done.length;
+    dTxt.textContent=n+' / 30';dBar.style.width=(n/30*100)+'%';
+    var i=sel>-1?sel:next();
+    if(i<0){dM.innerHTML='<div class="k">Défi terminé !</div><p>Tu as validé les 30 jours. Passe à un programme dans « Choisis ta piste ».</p>';return}
+    var x=D[i];
+    dM.innerHTML='<div class="k">Jour '+(i+1)+' · '+x.t+'</div><p>'+x.d+'</p><p style="color:var(--muted);font-size:.93rem">'+(isDone(i)?'Déjà fait. Touche à nouveau le jour pour le décocher.':'Touche une deuxième fois le jour pour le cocher.')+'</p>';
+  }
+  document.getElementById('dReset').addEventListener('click',function(){
+    var b=this;
+    if(b.dataset.c==='1'){done=[];sel=-1;save('pl-defi',done);b.dataset.c='';b.textContent='Recommencer le défi';drawDefi()}
+    else{b.dataset.c='1';b.textContent='Confirmer : tout effacer ?';setTimeout(function(){b.dataset.c='';b.textContent='Recommencer le défi'},4000)}
+  });
+  drawDefi();
+
+  /* ---------- Carnet ---------- */
+  var E=load('pl-carnet',[]);if(!Array.isArray(E))E=[];
+  var FEEL=['Dur','Moyen','Bien','Très bien','Top'];var feel=3;
+  var $=function(id){return document.getElementById(id)};
+  function pad(n){return (n<10?'0':'')+n}
+  function iso(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+  function parse(s){var a=s.split('-');return new Date(+a[0],+a[1]-1,+a[2])}
+  function monday(d){var x=new Date(d.getFullYear(),d.getMonth(),d.getDate());var k=(x.getDay()+6)%7;x.setDate(x.getDate()-k);return x}
+  function fmtDate(s){return parse(s).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})}
+  function fmtKm(n){return (Math.round(n*10)/10).toString().replace('.',',')}
+  $('cDate').value=iso(new Date());
+  var feelBox=$('cFeel');
+  FEEL.forEach(function(l,i){
+    var b=document.createElement('button');b.type='button';b.className='chip';b.textContent=l;
+    b.setAttribute('aria-pressed',(i+1)===feel?'true':'false');
+    b.addEventListener('click',function(){feel=i+1;Array.prototype.forEach.call(feelBox.children,function(c,j){c.setAttribute('aria-pressed',j===i?'true':'false')})});
+    feelBox.appendChild(b);
+  });
+  function drawCarnet(){
+    var tot=0;E.forEach(function(e){tot+=e.km});
+    var mon=monday(new Date());var wk=0;
+    E.forEach(function(e){if(monday(parse(e.date)).getTime()===mon.getTime())wk+=e.km});
+    $('sKm').textContent=fmtKm(tot);$('sN').textContent=E.length;$('sWk').textContent=fmtKm(wk);
+    var weeks=[],mx=0;
+    for(var i=7;i>=0;i--){var m=new Date(mon.getFullYear(),mon.getMonth(),mon.getDate()-7*i);var km=0;
+      E.forEach(function(e){if(monday(parse(e.date)).getTime()===m.getTime())km+=e.km});
+      weeks.push({m:m,km:km});if(km>mx)mx=km}
+    var h='';weeks.forEach(function(w){
+      var pct=mx>0?Math.max(3,w.km/mx*72):2;
+      h+='<div class="wb"><span>'+(w.km>0?fmtKm(w.km):'')+'</span><i style="height:'+pct+'px"></i></div>';
+    });
+    $('cBars').innerHTML=h;
+    var list=$('cList');list.innerHTML='';
+    var sorted=E.map(function(e,i){return {e:e,i:i}}).sort(function(a,b){return a.e.date<b.e.date?1:a.e.date>b.e.date?-1:b.i-a.i});
+    sorted.slice(0,30).forEach(function(o){
+      var e=o.e,d=document.createElement('div');d.className='ent';
+      var a=document.createElement('div');a.className='a';a.textContent=fmtKm(e.km)+' km · '+e.min+' min';
+      var b=document.createElement('div');b.className='b';
+      var pace=e.km>0&&e.min>0?(function(){var p=Math.round(e.min*60/e.km);return Math.floor(p/60)+':'+pad(p%60)+' /km'})():'';
+      b.textContent=fmtDate(e.date)+(pace?' · '+pace:'')+' · '+FEEL[e.f-1];
+      var x=document.createElement('button');x.type='button';x.textContent='Supprimer';x.setAttribute('aria-label','Supprimer la séance du '+fmtDate(e.date));
+      x.addEventListener('click',function(){E.splice(o.i,1);save('pl-carnet',E);drawCarnet()});
+      d.appendChild(a);d.appendChild(b);d.appendChild(x);list.appendChild(d);
+    });
+    $('cClear').hidden=E.length===0;
+  }
+  $('cAdd').addEventListener('click',function(){
+    var date=$('cDate').value,km=parseFloat($('cKm').value),min=parseFloat($('cMin').value),err=$('cErr');
+    if(!date){err.textContent='Choisis une date.';return}
+    if(!(km>0)||!(min>0)){err.textContent='Entre une distance et une durée.';return}
+    E.push({date:date,km:Math.round(km*100)/100,min:Math.round(min),f:feel});
+    save('pl-carnet',E);err.textContent='Séance ajoutée.';
+    $('cKm').value='';$('cMin').value='';drawCarnet();
+  });
+  $('cClear').addEventListener('click',function(){
+    var b=this;
+    if(b.dataset.c==='1'){E=[];save('pl-carnet',E);b.dataset.c='';b.textContent='Effacer le carnet';drawCarnet()}
+    else{b.dataset.c='1';b.textContent='Confirmer : tout effacer ?';setTimeout(function(){b.dataset.c='';b.textContent='Effacer le carnet'},4000)}
+  });
+  drawCarnet();
 })();
 </script>
 </body>
