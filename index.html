@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="utf-8">
+<meta charset="utf-8"> <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1D47F0">
+<link rel="apple-touch-icon" href="icon-192.png">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Piste libre – Running gratuit pour tous les niveaux</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1634,6 +1636,8 @@ html.open #gate{display:none}
     sh.addEventListener('click',function(){try{navigator.share({title:'Piste libre',text:'Running gratuit pour tous les niveaux',url:url}).catch(function(){})}catch(e){}});
   }
 })();
-</script> <meta name="viewport" content="width=device-width, initial-scale=1">
+</script> <meta name="viewport" content="width=device-width, initial-scale=1"> <script>
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+</script>
 </body>
 </html>
