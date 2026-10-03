@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Partager ma séance – Piste libre</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#0f1423; --card:#171f3a; --field:#0b0f1d; --line:#2a3558; --text:#eef2fb; --muted:#97a3c7; --yellow:#f9d648; --blue:#8b9ef8; --ink:#0f1423; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:"Barlow",system-ui,sans-serif; line-height:1.5; }
+  .ps-wrap { max-width:520px; margin:0 auto; padding:24px 20px 56px; }
+  .ps-back { color:var(--blue); text-decoration:none; font-weight:600; }
+  h1 { font:800 2.2rem/1.05 "Barlow Condensed",sans-serif; margin:16px 0 8px; }
+  .ps-intro { color:var(--muted); margin:0 0 20px; }
+  .ps-panel { background:var(--card); border:1px solid var(--line); border-top:5px solid var(--yellow); border-radius:18px; padding:20px; }
+  .ps-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .ps-field label { display:block; font-weight:600; margin-bottom:6px; }
+  .ps-field input { width:100%; padding:12px; border-radius:12px; border:1.5px solid var(--line); background:var(--field); color:var(--text); font:500 1.1rem "Barlow",sans-serif; }
+  .ps-field input:focus-visible { outline:3px solid var(--yellow); outline-offset:2px; }
+  .ps-btn { display:block; width:100%; margin-top:14px; padding:14px; border-radius:12px; border:0; font:700 1.05rem "Barlow",sans-serif; text-align:center; cursor:pointer; }
+  .ps-photo { background:transparent; border:1.5px solid var(--blue); color:var(--blue); }
+  .ps-share { background:var(--blue); color:var(--ink); }
+  .ps-save { background:transparent; color:var(--text); border:1.5px solid var(--line); }
+  .ps-btn:focus-visible { outline:3px solid var(--yellow); outline-offset:2px; }
+  #ps-file { display:none; }
+  .ps-preview { margin-top:20px; display:flex; justify-content:center; }
+  canvas { width:min(100%,300px); aspect-ratio:9/16; border-radius:16px; border:1px solid var(--line); background:var(--field); }
+  .ps-status { min-height:1.4em; margin:12px 0 0; color:var(--muted); font-size:.92rem; }
+</style>
+</head>
+<body>
+
+<!-- ===== DÉBUT ===== -->
+<main class="ps-wrap" id="partage-story">
+  <a class="ps-back" href="index.html">Retour</a>
+  <h1>Partager ma séance</h1>
+  <p class="ps-intro">Prends une photo, ajoute tes stats, et publie le tout en story Instagram.</p>
+
+  <div class="ps-panel">
+    <div class="ps-row">
+      <div class="ps-field"><label for="ps-km">Distance (km)</label><input id="ps-km" type="number" inputmode="decimal" step="0.01" min="0" value="5"></div>
+      <div class="ps-field"><label for="ps-time">Durée (mm:ss)</label><input id="ps-time" type="text" inputmode="numeric" value="27:30" placeholder="27:30 ou 1:05:30"></div>
+    </div>
+
+    <input id="ps-file" type="file" accept="image/*" capture="environment">
+    <button class="ps-btn ps-photo" id="ps-pick" type="button">Prendre ou choisir une photo</button>
+
+    <div class="ps-preview"><canvas id="ps-canvas" width="1080" height="1920" aria-label="Aperçu de la story"></canvas></div>
+
+    <button class="ps-btn ps-share" id="ps-share" type="button">Partager en story</button>
+    <button class="ps-btn ps-save" id="ps-save" type="button">Enregistrer l’image</button>
+    <p class="ps-status" id="ps-status" role="status" aria-live="polite"></p>
+  </div>
+</main>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var canvas = $("ps-canvas"), ctx = canvas.getContext("2d");
+  var W = 1080, H = 1920, photo = null, blob = null, timer = null;
+
+  // Préremplissage possible : partage-story.html?km=5.2&t=1620  (t en secondes)
+  var q = new URLSearchParams(location.search);
+  if (q.get("km")) $("ps-km").value = q.get("km");
+  if (q.get("t")) {
+    var s = Math.round(+q.get("t")), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), r = s % 60;
+    $("ps-time").value = (h ? h + ":" + String(m).padStart(2, "0") : m) + ":" + String(r).padStart(2, "0");
+  }
+
+  function parseDur(str) {
+    var p = str.trim().split(":").map(Number);
+    if (p.some(isNaN) || !p.length) return 0;
+    if (p.length === 1) return p[0] * 60;
+    if (p.length === 2) return p[0] * 60 + p[1];
+    return p[0] * 3600 + p[1] * 60 + p[2];
+  }
+  function fmtDur(sec) {
+    sec = Math.round(sec);
+    var h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), s = sec % 60;
+    return h ? h + ":" + String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0")
+             : m + ":" + String(s).padStart(2, "0");
+  }
+  function fmtKm(km) { return km.toFixed(2).replace(".", ","); }
+
+  function cover(img) {
+    var r = Math.max(W / img.width, H / img.height), w = img.width * r, h = img.height * r;
+    ctx.drawImage(img, (W - w) / 2, (H - h) / 2, w, h);
+  }
+
+  function draw() {
+    var km = parseFloat($("ps-km").value) || 0, sec = parseDur($("ps-time").value);
+    var pace = km > 0 && sec > 0 ? fmtDur(sec / km) : "–";
+    var F = "'Barlow Condensed', Impact, sans-serif";
+
+    // Fond : photo, ou piste stylisée si pas de photo
+    ctx.fillStyle = "#0f1423"; ctx.fillRect(0, 0, W, H);
+    if (photo) cover(photo);
+    else {
+      ctx.strokeStyle = "#2a3558"; ctx.lineWidth = 4; ctx.setLineDash([24, 20]);
+      for (var i = 0; i < 4; i++) { ctx.beginPath(); ctx.moveTo(0, 520 + i * 90); ctx.lineTo(W, 520 + i * 90); ctx.stroke(); }
+      ctx.setLineDash([]);
+    }
+
+    // Voile sombre pour la lisibilité
+    var g = ctx.createLinearGradient(0, 760, 0, H);
+    g.addColorStop(0, "rgba(15,20,35,0)"); g.addColorStop(.55, "rgba(15,20,35,.78)"); g.addColorStop(1, "rgba(15,20,35,.94)");
+    ctx.fillStyle = g; ctx.fillRect(0, 760, W, H - 760);
+    var t = ctx.createLinearGradient(0, 0, 0, 480);
+    t.addColorStop(0, "rgba(15,20,35,.65)"); t.addColorStop(1, "rgba(15,20,35,0)");
+    ctx.fillStyle = t; ctx.fillRect(0, 0, W, 480);
+
+    // Logo (zone sûre : sous les 250 px du haut de l'écran Instagram)
+    ctx.beginPath(); ctx.arc(110, 290, 26, 0, Math.PI * 2);
+    ctx.fillStyle = "#f9d648"; ctx.fill(); ctx.lineWidth = 6; ctx.strokeStyle = "#fff"; ctx.stroke();
+    ctx.fillStyle = "#eef2fb"; ctx.textBaseline = "alphabetic";
+    ctx.font = "700 68px " + F; ctx.fillText("Piste libre", 156, 313);
+
+    // Stats (zone sûre : au-dessus des 340 px du bas)
+    ctx.fillStyle = "#f9d648"; ctx.font = "800 300px " + F;
+    ctx.fillText(fmtKm(km), 80, 1290);
+    var kmW = ctx.measureText(fmtKm(km)).width;
+    ctx.fillStyle = "#eef2fb"; ctx.font = "700 90px " + F; ctx.fillText("km", 80 + kmW + 24, 1290);
+
+    ctx.fillStyle = "#97a3c7"; ctx.font = "600 44px 'Barlow', sans-serif";
+    ctx.fillText("Durée", 80, 1400); ctx.fillText("Allure", 560, 1400);
+    ctx.fillStyle = "#eef2fb"; ctx.font = "800 130px " + F;
+    ctx.fillText(fmtDur(sec), 80, 1530); ctx.fillText(pace + " /km", 560, 1530);
+
+    ctx.fillStyle = "#97a3c7"; ctx.font = "500 40px 'Barlow', sans-serif";
+    ctx.fillText(new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" }), 80, 1600);
+
+    // Prépare le fichier à l'avance, pour que le bouton Partager réagisse instantanément
+    clearTimeout(timer);
+    timer = setTimeout(function () { canvas.toBlob(function (b) { blob = b; }, "image/png"); }, 150);
+  }
+
+  function status(msg) { $("ps-status").textContent = msg; }
+  function file() { return new File([blob], "piste-libre-story.png", { type: "image/png" }); }
+
+  $("ps-pick").addEventListener("click", function () { $("ps-file").click(); });
+  $("ps-file").addEventListener("change", function () {
+    var f = this.files[0]; if (!f) return;
+    var img = new Image(), url = URL.createObjectURL(f);
+    img.onload = function () { photo = img; draw(); URL.revokeObjectURL(url); status("Photo ajoutée."); };
+    img.src = url;
+  });
+  ["ps-km", "ps-time"].forEach(function (id) { $(id).addEventListener("input", draw); });
+
+  function save() {
+    if (!blob) { status("Image en préparation, réessaie dans une seconde."); return; }
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = "piste-libre-story.png";
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+  $("ps-save").addEventListener("click", function () { save(); status("Image enregistrée dans tes téléchargements."); });
+
+  $("ps-share").addEventListener("click", function () {
+    if (!blob) { status("Image en préparation, réessaie dans une seconde."); return; }
+    var f = file();
+    if (navigator.canShare && navigator.canShare({ files: [f] })) {
+      navigator.share({ files: [f] }).then(function () { status("Partagé."); })
+        .catch(function (e) { if (e.name !== "AbortError") status("Partage impossible. Utilise « Enregistrer l’image »."); });
+    } else {
+      save();
+      status("Partage direct non disponible ici. Image enregistrée : ouvre Instagram, crée une story et choisis-la dans ta galerie.");
+    }
+  });
+
+  // Dessine après le chargement des polices, sinon le texte utilise la police de secours
+  (document.fonts && document.fonts.load ? Promise.all([
+    document.fonts.load("800 100px 'Barlow Condensed'"),
+    document.fonts.load("700 100px 'Barlow Condensed'"),
+    document.fonts.load("500 40px 'Barlow'")
+  ]) : Promise.resolve()).catch(function () {}).then(draw);
+})();
+</script>
+<!-- ===== FIN ===== -->
+
+</body>
+</html>
