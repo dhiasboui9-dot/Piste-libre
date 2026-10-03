@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Météo et tenue – Piste libre</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1423;
+    --card: #171f3a;
+    --field: #0b0f1d;
+    --line: #2a3558;
+    --text: #eef2fb;
+    --muted: #97a3c7;
+    --yellow: #f9d648;
+    --blue: #8b9ef8;
+    --ink: #0f1423;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: "Barlow", system-ui, sans-serif; line-height: 1.5;
+  }
+
+  /* ===== Section à copier dans le site : tout est préfixé .mt- ===== */
+  .mt-wrap { max-width: 640px; margin: 0 auto; padding: 32px 20px 56px; }
+  .mt-wrap h2 {
+    font-family: "Barlow Condensed", sans-serif; font-weight: 800;
+    font-size: 2.2rem; line-height: 1.05; margin: 0 0 8px;
+  }
+  .mt-intro { color: var(--muted); margin: 0 0 24px; }
+
+  .mt-panel {
+    background: var(--card); border: 1px solid var(--line);
+    border-top: 5px solid var(--yellow); border-radius: 18px; padding: 20px;
+  }
+  .mt-geo {
+    width: 100%; padding: 13px; border-radius: 12px; border: 1.5px solid var(--blue);
+    background: transparent; color: var(--blue); font: 600 1rem "Barlow", sans-serif; cursor: pointer;
+  }
+  .mt-geo:disabled { opacity: .6; cursor: wait; }
+  .mt-status { min-height: 1.4em; margin: 8px 0 0; font-size: .9rem; color: var(--muted); }
+
+  .mt-field { margin-top: 20px; }
+  .mt-label { display: flex; justify-content: space-between; align-items: baseline; font-weight: 600; }
+  .mt-label output { font: 700 1.5rem "Barlow Condensed", sans-serif; color: var(--yellow); }
+  input[type=range] { width: 100%; margin: 10px 0 0; accent-color: var(--yellow); height: 28px; }
+
+  .mt-seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; border: 0; padding: 0; }
+  .mt-seg legend { font-weight: 600; padding: 0; }
+  .mt-seg label { position: relative; }
+  .mt-seg input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+  .mt-seg span {
+    display: block; text-align: center; padding: 11px 6px; border-radius: 12px;
+    background: var(--field); border: 1.5px solid var(--line); font-weight: 600; font-size: .95rem;
+  }
+  .mt-seg input:checked + span { background: var(--blue); border-color: var(--blue); color: var(--ink); }
+  .mt-seg input:focus-visible + span { outline: 3px solid var(--yellow); outline-offset: 2px; }
+
+  .mt-rain { display: flex; align-items: center; gap: 12px; margin-top: 20px; font-weight: 600; cursor: pointer; }
+  .mt-rain input { width: 22px; height: 22px; accent-color: var(--yellow); }
+
+  .mt-result { margin-top: 24px; }
+  .mt-feel {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap;
+    padding-bottom: 14px; border-bottom: 1px solid var(--line);
+  }
+  .mt-feel strong { font: 800 2.6rem/1 "Barlow Condensed", sans-serif; color: var(--yellow); }
+  .mt-feel small { color: var(--muted); font-size: .9rem; max-width: 24ch; text-align: right; }
+
+  .mt-list { list-style: none; margin: 0; padding: 0; }
+  .mt-list li { display: grid; grid-template-columns: 5.5rem 1fr; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--line); }
+  .mt-list li:last-child { border-bottom: 0; }
+  .mt-zone { font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: 1.15rem; color: var(--blue); }
+  .mt-note { margin: 14px 0 0; padding: 12px 14px; border-radius: 12px; background: var(--field); color: var(--muted); font-size: .92rem; }
+  .mt-note b { color: var(--text); }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .mt-list li { animation: mt-in .25s ease-out; }
+    @keyframes mt-in { from { opacity: 0; } to { opacity: 1; } }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== DÉBUT DE LA SECTION ===== -->
+<section class="mt-wrap" id="meteo-tenue">
+  <h2>Météo et tenue</h2>
+  <p class="mt-intro">Règle la météo, choisis ton type de séance, et vois comment t’habiller.</p>
+
+  <div class="mt-panel">
+    <button class="mt-geo" id="mt-geo" type="button">Utiliser la météo de ma position</button>
+    <p class="mt-status" id="mt-status" role="status" aria-live="polite"></p>
+
+    <div class="mt-field">
+      <label class="mt-label" for="mt-temp">Température <output id="mt-temp-out">12 °C</output></label>
+      <input type="range" id="mt-temp" min="-15" max="40" step="1" value="12">
+    </div>
+
+    <div class="mt-field">
+      <label class="mt-label" for="mt-wind">Vent <output id="mt-wind-out">10 km/h</output></label>
+      <input type="range" id="mt-wind" min="0" max="60" step="1" value="10">
+    </div>
+
+    <label class="mt-rain"><input type="checkbox" id="mt-rain"> Il pleut ou la pluie menace</label>
+
+    <fieldset class="mt-seg">
+      <legend>Type de séance</legend>
+      <label><input type="radio" name="mt-effort" value="5" checked><span>Footing facile</span></label>
+      <label><input type="radio" name="mt-effort" value="7"><span>Allure soutenue</span></label>
+      <label><input type="radio" name="mt-effort" value="9"><span>Fractionné, course</span></label>
+    </fieldset>
+
+    <div class="mt-result" aria-live="polite">
+      <div class="mt-feel">
+        <strong id="mt-feel">–</strong>
+        <small id="mt-feel-note"></small>
+      </div>
+      <ul class="mt-list" id="mt-list"></ul>
+      <p class="mt-note" id="mt-note" hidden></p>
+    </div>
+  </div>
+</section>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var temp = $("mt-temp"), wind = $("mt-wind"), rain = $("mt-rain");
+
+  // Température ressentie (refroidissement éolien, valable sous 10 °C et vent > 5 km/h)
+  function ressentie(t, v) {
+    if (t <= 10 && v > 4.8) {
+      var p = Math.pow(v, 0.16);
+      return 13.12 + 0.6215 * t - 11.37 * p + 0.3965 * t * p;
+    }
+    return t;
+  }
+
+  function tenue(eff, venteux, pluie) {
+    var haut, bas, tete, pieds;
+    if (eff >= 25)      { haut = "Débardeur ou t-shirt très léger, respirant"; bas = "Short léger"; tete = "Casquette ou visière, lunettes"; pieds = "Chaussettes fines"; }
+    else if (eff >= 20) { haut = "T-shirt technique léger"; bas = "Short"; tete = "Casquette si soleil"; pieds = "Chaussettes fines"; }
+    else if (eff >= 15) { haut = "T-shirt technique"; bas = "Short"; tete = "Rien, ou casquette si soleil"; pieds = "Chaussettes classiques"; }
+    else if (eff >= 10) { haut = "T-shirt manches longues fin"; bas = "Short ou cuissard long"; tete = "Bandeau fin si frais"; pieds = "Chaussettes classiques"; }
+    else if (eff >= 5)  { haut = "Manches longues + gilet léger"; bas = "Collant ou cuissard long"; tete = "Bandeau ou bonnet fin"; pieds = "Chaussettes un peu épaisses, gants fins"; }
+    else if (eff >= 0)  { haut = "Manches longues chaud + veste coupe-vent"; bas = "Collant"; tete = "Bonnet, tour de cou"; pieds = "Chaussettes épaisses, gants"; }
+    else                { haut = "Sous-couche thermique + couche chaude + veste coupe-vent"; bas = "Collant thermique"; tete = "Bonnet, tour de cou ou buff"; pieds = "Chaussettes épaisses, gants chauds"; }
+
+    if (pluie) {
+      haut += eff >= 15 ? ", plus une veste de pluie ultra-légère" : ", plus une veste imperméable respirante";
+      tete = (eff >= 5 ? "Casquette à visière pour garder la pluie hors des yeux" : tete + ", casquette à visière sous la capuche");
+      pieds += ". Chaussures avec bonne adhérence, vaseline sur les zones de frottement";
+    } else if (venteux && eff < 20) {
+      haut += ", plus un coupe-vent léger";
+    }
+    return [["Haut", haut], ["Bas", bas], ["Tête, mains", tete], ["Pieds", pieds]];
+  }
+
+  function notes(t, eff, v, pluie) {
+    var n = [];
+    if (t >= 25) n.push("<b>Chaleur :</b> pars tôt ou tard, emporte de l’eau, ralentis l’allure de 10 à 20 s/km.");
+    if (t >= 30) n.push("<b>Forte chaleur :</b> raccourcis la séance et évite le milieu de journée.");
+    if (t <= 0)  n.push("<b>Gel :</b> échauffe-toi en intérieur et fais attention aux plaques de verglas.");
+    if (v >= 25) n.push("<b>Vent fort :</b> pars face au vent, reviens vent dans le dos.");
+    if (pluie)   n.push("<b>Pluie :</b> évite les surfaces glissantes (peinture, feuilles mouillées).");
+    if (eff >= 5 && eff < 20) n.push("Tu dois avoir un peu frais au départ. Si tu es bien au chaud dehors, tu auras trop chaud après 10 minutes.");
+    return n.join("<br>");
+  }
+
+  function render() {
+    var t = +temp.value, v = +wind.value, pluie = rain.checked;
+    var bonus = +document.querySelector('input[name="mt-effort"]:checked').value;
+    var res = ressentie(t, v);
+    var eff = res + bonus;
+
+    $("mt-temp-out").textContent = t + " °C";
+    $("mt-wind-out").textContent = v + " km/h";
+    $("mt-feel").textContent = Math.round(res) + " °C";
+    $("mt-feel-note").textContent = "ressentis, soit une tenue pour " + Math.round(eff) + " °C une fois lancé";
+
+    var html = tenue(eff, v >= 15, pluie).map(function (r) {
+      return '<li><span class="mt-zone">' + r[0] + '</span><span>' + r[1] + '</span></li>';
+    }).join("");
+    $("mt-list").innerHTML = html;
+
+    var n = notes(t, eff, v, pluie), el = $("mt-note");
+    el.innerHTML = n; el.hidden = !n;
+  }
+
+  document.querySelectorAll("#meteo-tenue input").forEach(function (i) {
+    i.addEventListener("input", render);
+  });
+
+  // Météo réelle via Open-Meteo (gratuit, sans clé ni inscription)
+  $("mt-geo").addEventListener("click", function () {
+    var btn = this, status = $("mt-status");
+    if (!navigator.geolocation) { status.textContent = "Ton navigateur ne permet pas la localisation."; return; }
+    btn.disabled = true; status.textContent = "Localisation en cours…";
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      var url = "https://api.open-meteo.com/v1/forecast?latitude=" + pos.coords.latitude +
+        "&longitude=" + pos.coords.longitude +
+        "&current=temperature_2m,wind_speed_10m,precipitation&wind_speed_unit=kmh&timezone=auto";
+      fetch(url).then(function (r) { return r.json(); }).then(function (d) {
+        var c = d.current;
+        temp.value = Math.max(-15, Math.min(40, Math.round(c.temperature_2m)));
+        wind.value = Math.max(0, Math.min(60, Math.round(c.wind_speed_10m)));
+        rain.checked = c.precipitation > 0;
+        status.textContent = "Météo actuelle chargée. Tu peux ajuster les curseurs.";
+        render();
+      }).catch(function () {
+        status.textContent = "Impossible de charger la météo. Règle les curseurs à la main.";
+      }).finally(function () { btn.disabled = false; });
+    }, function () {
+      status.textContent = "Localisation refusée. Règle les curseurs à la main.";
+      btn.disabled = false;
+    }, { timeout: 10000 });
+  });
+
+  render();
+})();
+</script>
+<!-- ===== FIN DE LA SECTION ===== -->
+
+</body>
+</html>
