@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head>
+<head> <script>
+try{
+  localStorage.removeItem('pl-ok');
+  var _s=Storage.prototype.setItem;
+  Storage.prototype.setItem=function(k,v){ if(k==='pl-ok') return; return _s.apply(this,arguments); };
+}catch(e){}
+</script>
 <meta charset="utf-8"> <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1D47F0">
 <link rel="apple-touch-icon" href="icon-192.png">
