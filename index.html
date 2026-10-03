@@ -1638,6 +1638,41 @@ html.open #gate{display:none}
 })();
 </script> <meta name="viewport" content="width=device-width, initial-scale=1"> <script>
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+</script> <script>
+(function(){
+  var tbl=document.getElementById('lTable'),box=document.getElementById('lSplits'),cur=document.getElementById('lCur'),tm=document.getElementById('lTime');
+  if(!tbl||!box||!cur)return;
+  function p2(n){return n<10?'0'+n:''+n}
+  function sec(t){var a=String(t).trim().split(':').map(Number);if(a.some(isNaN))return 0;return a.reduce(function(s,x){return s*60+x},0)}
+  function fmt(s){s=Math.round(s);var h=Math.floor(s/3600),m=Math.floor(s%3600/60),r=s%60;return h>0?h+':'+p2(m)+':'+p2(r):m+':'+p2(r)}
+  function fix(){
+    var rows=tbl.querySelectorAll('tr');
+    if(rows.length&&rows[0].textContent.indexOf('Temps total')>-1)return;
+    var out='<tr><th>Km</th><th>Allure /km</th><th>Temps total</th></tr>',cum=0,n=0,hasPartial=false;
+    for(var i=1;i<rows.length;i++){
+      var c=rows[i].querySelectorAll('td');
+      if(c.length<3)continue;
+      var label=c[0].textContent,split=sec(c[1].textContent),pace=c[2].textContent;
+      if(label.indexOf('km')>-1){
+        hasPartial=true;
+        out+='<tr><td>'+label+'</td><td><b>'+pace+'</b></td><td>'+fmt(cum+split)+'</td></tr>';
+      }else{
+        cum+=split;
+        out+='<tr><td>'+label+'</td><td><b>'+pace+'</b></td><td>'+fmt(cum)+'</td></tr>';
+      }
+      n++;
+    }
+    var m=cur.textContent.match(/en cours : (\d+) m(?: · (\d+:\d+) \/km)?/);
+    if(!hasPartial&&m&&m[2]&&+m[1]>=50){
+      out+='<tr><td>'+(m[1]/1000).toFixed(2).replace('.',',')+' km …</td><td><b>'+m[2]+'</b></td><td>'+tm.textContent+'</td></tr>';
+      n++;
+    }
+    tbl.innerHTML=out;
+    box.hidden=(n===0);
+  }
+  new MutationObserver(fix).observe(tbl,{childList:true});
+  fix();
+})();
 </script>
 </body>
 </html>
