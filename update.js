@@ -54,17 +54,23 @@
     };
   }
 
+  var FILES = [location.pathname, 'course-live.js', 'version.json'];
+
+  function head(u) {
+    return fetch(u + (u.indexOf('?') > -1 ? '&' : '?') + 't=' + Date.now(), { method: 'HEAD', cache: 'no-store' })
+      .then(function (r) { return r.headers.get('etag') || r.headers.get('last-modified') || ''; })
+      .catch(function () { return ''; });
+  }
+
   function check() {
-    fetch('version.json?t=' + Date.now(), { cache: 'no-store' })
-      .then(function (r) { return r.json(); })
-      .then(function (j) {
-        var v = String(j.version);
-        var seen = null;
-        try { seen = localStorage.getItem(KEY); } catch (e) {}
-        if (seen === null) { try { localStorage.setItem(KEY, v); } catch (e) {} return; } // première visite
-        if (seen !== v) block(v);
-      })
-      .catch(function () {}); // hors ligne : on ne bloque pas
+    Promise.all(FILES.map(head)).then(function (a) {
+      if (a.every(function (x) { return !x; })) return;
+      var v = a.join('|');
+      var seen = null;
+      try { seen = localStorage.getItem(KEY); } catch (e) {}
+      if (seen === null) { try { localStorage.setItem(KEY, v); } catch (e) {} return; }
+      if (seen !== v) block(v);
+    });
   }
 
   function init() {
