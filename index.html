@@ -1516,7 +1516,7 @@ html.open #gate{display:none}
   function say(t){
     if(!voice||!('speechSynthesis' in window))return;
     try{var u=new SpeechSynthesisUtterance(t);u.lang='fr-FR';window.speechSynthesis.speak(u)}catch(e){}
-  }
+  } function spoken(ms){var s=Math.round(ms/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60),r=s%60;return (h>0?h+' heure'+(h>1?'s':'')+' ':'')+m+' minute'+(m>1?'s':'')+' '+r+' seconde'+(r>1?'s':'')}
 
   function draw(){
     var t=elapsed();
@@ -1680,7 +1680,25 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
   fix();
 })();
 <script src="course-live.js" defer></script>
-<script src="update.js" defer></script> <p style="text-align:center;padding:24px"><a href="meteo-tenue.html" style="color:#f9d648;font-weight:600">Météo et tenue</a></p>
+<script src="update.js" defer></script> <p style="text-align:center;padding:24px"><a href="meteo-tenue.html" style="color:#f9d648;font-weight:600">Météo et tenue</a></p> <script>
+(function(){
+  if(!('speechSynthesis' in window))return;
+  var orig=window.speechSynthesis.speak.bind(window.speechSynthesis);
+  window.speechSynthesis.speak=function(u){
+    try{
+      var m=/^Kilomètre (\d+)\. Allure (.*)$/.exec(u.text);
+      if(m){
+        var a=document.getElementById('lTime').textContent.trim().split(':').map(Number);
+        var h=0,mi,s;
+        if(a.length===3){h=a[0];mi=a[1];s=a[2]}else{mi=a[0];s=a[1]}
+        var t=(h>0?h+' heure'+(h>1?'s':'')+' ':'')+mi+' minute'+(mi>1?'s':'')+' '+s+' seconde'+(s>1?'s':'');
+        u.text='Kilomètre '+m[1]+'. Temps : '+t+'. Allure '+m[2];
+      }
+    }catch(e){}
+    orig(u);
+  };
+})();
+</script>
 </body>
 </html> 
 <p style="text-align:center;padding:8px 24px 24px"><a href="partage-story.html" style="color:#f9d648;font-weight:600">Partager ma séance</a></p> </body>
