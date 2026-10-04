@@ -10,7 +10,7 @@ if (!sec) {
   var t0 = document.getElementById('lTime');
   sec = t0 && (t0.closest('section') || t0.closest('.wrap'));
 }
-if (!sec) return;
+if (!sec) return; alert('course-live chargé : ' + (document.getElementById('course') ? 'course trouvé' : (document.getElementById('lTime') ? 'lTime trouvé' : 'rien trouvé')));
 var wrap = sec.querySelector('.wrap') || sec;
 var wrap = sec.querySelector('.wrap') || sec;
 var wrap = sec.querySelector('.wrap') || sec;
