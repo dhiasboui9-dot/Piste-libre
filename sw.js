@@ -1,4 +1,4 @@
-const CACHE = 'piste-libre-v1';
+const CACHE = 'piste-libre-v4';
 const FILES = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
