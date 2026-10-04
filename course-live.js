@@ -5,11 +5,11 @@
    + Sauvegarde automatique : si la page est rechargée ou tuée par Android
      pendant la course, elle reprend où elle en était. */
 (function () {
-  var sec = document.getElementById('course');
-  if (!sec) return;
-  var wrap = sec.querySelector('.wrap');
-  if (!wrap) return;
-
+  
+var sec = document.getElementById('course') ||
+  (document.getElementById('lTime') && document.getElementById('lTime').closest('section'));
+if (!sec) return;
+var wrap = sec.querySelector('.wrap') || sec;
   var css = document.createElement('style');
   css.textContent =
     '.lv-hero{margin-top:22px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px}' +
