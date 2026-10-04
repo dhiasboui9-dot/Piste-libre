@@ -13,6 +13,7 @@ if (!sec) {
 if (!sec) return;
 var wrap = sec.querySelector('.wrap') || sec;
 var wrap = sec.querySelector('.wrap') || sec;
+var wrap = sec.querySelector('.wrap') || sec;
   var css = document.createElement('style');
   css.textContent =
     '.lv-hero{margin-top:22px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px}' +
