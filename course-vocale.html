@@ -103,7 +103,15 @@
     const now = Date.now();
     if (m > 13 && now - lastStep > 250) { steps++; lastStep = now; }
   }
-
+  const CONSEILS = [
+  'Respire calmement, tu es sur la bonne voie.',
+  'Relâche les épaules et garde un pas léger.',
+  'Tu peux parler en courant : c\'est le bon rythme.',
+  'Chaque kilomètre te rend plus fort.',
+  'Pense à boire quelques gorgées d\'eau après la course.',
+  'Redresse-toi, regarde devant toi.',
+  'Bravo, la régularité est la clé.'
+];
   // --- GPS ---
   function onPos(p) {
     if (!running) return;
