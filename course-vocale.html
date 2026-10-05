@@ -128,7 +128,7 @@
     if (dist >= km * 1000) {
       const now = Date.now();
       const total = (now - tStart) / 1000;
-      const split = (now - tKm) / 1000;
+      const split = (now - tKm) / 1000; const conseil = (km % 2 === 0) ? CONSEILS[(km / 2 - 1) % CONSEILS.length] : '';
       parle(
         `Kilomètre ${km}. ` +
         `Temps total : ${parle_duree(total)}. ` +
