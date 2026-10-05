@@ -101,7 +101,7 @@
       parle(
         `Kilomètre ${km}. ` +
         `Temps total : ${parle_duree(total)}. ` +
-        `Rythme de ce kilomètre : ${parle_duree(split)}. ` +
+        `Rythme de ce kilomètre : ${parle_duree(split)}. ` + `Rythme moyen : ${parle_duree(total / (dist / 1000))} par kilomètre. ` +
         `${steps - stepsKm} pas.`
       );
       km++; tKm = now; stepsKm = steps;
