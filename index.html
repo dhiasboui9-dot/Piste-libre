@@ -1699,12 +1699,13 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
     orig(u);
   };
 })();
-</script> <style>
+</script> 
+<style>
 #intro{display:none;position:fixed;inset:0;z-index:9999;background:#0e1425;
-  flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:20px}
-#intro h2{margin:0;color:#eef2fb;font-size:2rem;text-transform:uppercase;
+  flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:16px}
+#intro h2{margin:0;color:#eef2fb;font-size:1.8rem;text-transform:uppercase;
   text-align:center;font-weight:800;line-height:1.1}
-#introVideo{width:100%;max-height:55%;border-radius:16px;background:#000}
+#introVideo{width:auto;height:55%;aspect-ratio:9/16;max-width:100%;border:0;border-radius:16px;background:#000}
 #introGo{background:#fcd53f;color:#0e1425;border:0;border-radius:999px;
   padding:14px 28px;font-size:1.05rem;font-weight:700}
 #introSkip{position:absolute;top:calc(16px + env(safe-area-inset-top));right:16px;
@@ -1715,7 +1716,9 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 <div id="intro">
   <button id="introSkip">Passer</button>
   <h2>Ta première foulée<br>commence ici.</h2>
-  <video id="introVideo" src="motivation.mp4" playsinline muted controls></video>
+  <iframe id="introVideo" src=""
+    data-src="https://www.youtube.com/embed/_jyU2bPkFEE?playsinline=1&rel=0&autoplay=1&mute=1"
+    allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
   <button id="introGo">Commencer ma première séance</button>
 </div>
 
@@ -1723,9 +1726,9 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 const intro = document.getElementById('intro');
 const vid = document.getElementById('introVideo');
 
-function showIntro(){ intro.style.display='flex'; vid.currentTime=0; vid.play().catch(()=>{}); }
+function showIntro(){ vid.src = vid.dataset.src; intro.style.display='flex'; }
 function closeIntro(){
-  vid.pause();
+  vid.src = '';
   intro.style.display='none';
   try{ localStorage.setItem('hasSeenIntro','1'); }catch(e){}
 }
@@ -1734,7 +1737,6 @@ try{ if(!localStorage.getItem('hasSeenIntro')) showIntro(); }catch(e){ showIntro
 
 document.getElementById('introSkip').onclick = closeIntro;
 document.getElementById('introGo').onclick = closeIntro;
-vid.onended = closeIntro;
 </script>
 </body>
 </html> 
