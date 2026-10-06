@@ -7,7 +7,8 @@
    + Écran éteint : le temps et l'allure moyenne continuent (basés sur l'horloge),
      le GPS est maintenu actif par un son silencieux, et tout se remet à jour
      dès que l'écran se rallume. La course ne s'arrête que sur « Terminer ». */
-(function () {
+(function () { 
+   document.head.appendChild(document.createElement('script')).src='historique.js';
   var sec = document.getElementById('course');
   if (!sec) {
     var t0 = document.getElementById('lTime');
