@@ -1,4 +1,4 @@
-/* Piste libre : suivi de course en direct (style Strava).
+/* var s=document.createElement('script');s.src='historique.js';document.head.appendChild(s); Piste libre : suivi de course en direct (style Strava).
    Remplace le contenu de la section #course.
    Distance en km et en mètres, temps, allure moyenne, allure actuelle,
    et pour chaque kilomètre : temps, allure et temps total.
