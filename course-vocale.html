@@ -111,9 +111,27 @@
   'Pense à boire quelques gorgées d\'eau après la course.',
   'Redresse-toi, regarde devant toi.',
   'Bravo, la régularité est la clé.'
+]; const MOTIVATION = [
+  'Bravo, un kilomètre de fait !',
+  'Tu gères, continue comme ça !',
+  'Super rythme, ne lâche rien !',
+  'Chaque pas compte, tu avances bien !',
+  'Tu es en pleine forme, allez !',
+  'Quelle belle foulée, tu es solide !',
+  'Tu peux être fier de toi !',
+  'Encore un de plus, tu es une machine !'
+]; const MOTIVATION = [
+  'Bravo, un kilomètre de fait !',
+  'Tu gères, continue comme ça !',
+  'Super rythme, ne lâche rien !',
+  'Chaque pas compte, tu avances bien !',
+  'Tu es en pleine forme, allez !',
+  'Quelle belle foulée, tu es solide !',
+  'Tu peux être fier de toi !',
+  'Encore un de plus, tu es une machine !'
 ];
   // --- GPS ---
-  function onPos(p) {
+  function onPos(p) { 
     if (!running) return;
     const c = p.coords;
     if (c.accuracy > 30) return;                 // ignore les points imprécis
@@ -128,9 +146,11 @@
     if (dist >= km * 1000) {
       const now = Date.now();
       const total = (now - tStart) / 1000;
-      const split = (now - tKm) / 1000; const conseil = (km % 2 === 0) ? CONSEILS[(km / 2 - 1) % CONSEILS.length] : '';
+      const split = (now - tKm) / 1000;
+const motiv = MOTIVATION[(km - 1) % MOTIVATION.length];
+const conseil = (km % 2 === 0) ? CONSEILS[(km / 2 - 1) % CONSEILS.length] : '';
       parle(
-        `Kilomètre ${km}. ` +
+        `Kilomètre ${km}. ${motiv} ` +
         `Temps total : ${parle_duree(total)}. ` +
         `Rythme de ce kilomètre : ${parle_duree(split)}. ` + `Rythme moyen : ${parle_duree(total / (dist / 1000))} par kilomètre. ` +
         `${steps - stepsKm} pas. ${conseil}`
