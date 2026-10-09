@@ -1,0 +1,407 @@
+<!-- 1) Dans le menu : ajoute ce lien à côté des autres -->
+<!-- <a href="#course">Course</a> -->
+
+<!-- 2) Colle cette section où tu veux (par ex. avant la section "Outils") -->
+<section id="course" style="padding:24px 16px;max-width:520px;margin:auto;text-align:center">
+  <h2>Course en direct</h2>
+  <p>Après chaque kilomètre, la voix annonce le numéro du km, ton temps total, ton rythme et tes pas. Tu peux verrouiller l'écran : la course continue jusqu'à « Arrêter ».</p>
+
+  <div id="cv-live" style="font-size:1.1rem;margin:16px 0;line-height:1.7">
+    Distance : <b id="cv-dist">0.00</b> km<br>
+    Temps : <b id="cv-time">0:00</b><br>
+    Rythme moyen : <b id="cv-avg">–</b> /km<br>
+    Pas : <b id="cv-steps">0</b>
+  </div>
+
+  <div id="cv-mapbox" style="display:none;margin:12px 0;border-radius:14px;overflow:hidden;background:#121a2e">
+    <canvas id="cv-map" aria-label="Carte du parcours" style="display:block;width:100%;height:280px"></canvas>
+  </div>
+
+  <button id="cv-start" style="padding:14px 28px;font-size:1.1rem;border-radius:12px;border:0;background:#16a34a;color:#fff">Démarrer</button>
+  <button id="cv-stop" style="padding:14px 28px;font-size:1.1rem;border-radius:12px;border:0;background:#dc2626;color:#fff;display:none">Arrêter</button>
+  <div>
+    <button id="cv-share" style="display:none;margin-top:12px;padding:14px 28px;font-size:1.1rem;border-radius:12px;border:0;background:#2563eb;color:#fff">Partager en story</button>
+  </div>
+  <p id="cv-msg" style="font-size:.9rem;opacity:.75;margin-top:12px"></p>
+</section> <section id="conseils" style="padding:24px 16px;max-width:520px;margin:auto;line-height:1.6">
+  <h2 style="text-align:center">Pourquoi courir ?</h2>
+  <ul>
+    <li><b>Le cœur :</b> la course régulière renforce le cœur et améliore l'endurance.</li>
+    <li><b>Le moral :</b> elle aide à réduire le stress et l'anxiété.</li>
+    <li><b>Le sommeil :</b> on s'endort plus facilement et on dort mieux.</li>
+    <li><b>Le poids :</b> elle aide à dépenser des calories et à rester en forme.</li>
+    <li><b>L'énergie :</b> on se sent moins fatigué au quotidien.</li>
+  </ul>
+
+  <h2 style="text-align:center">Pour bien débuter</h2>
+  <ol>
+    <li><b>Commence doucement :</b> alterne 1 minute de course et 2 minutes de marche, pendant 20 minutes.</li>
+    <li><b>Vise la régularité :</b> 3 sorties par semaine valent mieux qu'une seule grosse séance.</li>
+    <li><b>Ralentis :</b> tu dois pouvoir parler en courant.</li>
+    <li><b>Chaussures adaptées :</b> c'est le seul vrai investissement utile.</li>
+    <li><b>Échauffement :</b> 5 minutes de marche rapide avant de partir.</li>
+    <li><b>Hydrate-toi</b> et laisse 1 jour de repos entre deux sorties au début.</li>
+    <li><b>Ne te compare pas :</b> ton seul adversaire, c'est toi d'hier.</li>
+  </ol>
+
+  <p style="text-align:center;font-weight:bold">Le plus dur, c'est de sortir. Le premier pas est déjà une victoire !</p>
+  <p style="font-size:.85rem;opacity:.7;text-align:center">En cas de doute sur ta santé, demande l'avis de ton médecin avant de commencer.</p>
+</section>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  let watchId = null, wakeLock = null, timerId = null, keepAudio = null, silenceUrl = null;
+  let running = false;
+  let km, dist, prev, steps, tStart, tKm, stepsKm, lastStep, tEnd = null;
+  let track = [];                       // points GPS [lat, lon] pour la carte
+  const ACCENT = '#fcd53f';
+
+  // --- Utilitaires ---
+  const R = 6371000;
+  function haversine(a, b) {
+    const rad = x => x * Math.PI / 180;
+    const dLat = rad(b.latitude - a.latitude);
+    const dLon = rad(b.longitude - a.longitude);
+    const h = Math.sin(dLat / 2) ** 2 +
+      Math.cos(rad(a.latitude)) * Math.cos(rad(b.latitude)) * Math.sin(dLon / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(h));
+  }
+  const pad = n => String(n).padStart(2, '0');
+  function clock(s) {
+    s = Math.round(s);
+    const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60);
+    return (h ? h + ':' + pad(m) : m) + ':' + pad(s % 60);
+  }
+  function parle_duree(s) {
+    s = Math.round(s);
+    const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), sec = s % 60;
+    let t = '';
+    if (h) t += h + (h > 1 ? ' heures ' : ' heure ');
+    if (m || h) t += m + (m > 1 ? ' minutes ' : ' minute ');
+    t += sec + (sec > 1 ? ' secondes' : ' seconde');
+    return t;
+  }
+  function parle(txt) {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(txt);
+    u.lang = 'fr-FR';
+    const v = speechSynthesis.getVoices().find(v => v.lang.startsWith('fr'));
+    if (v) u.voice = v;
+    speechSynthesis.speak(u);
+  }
+  function paceStr(sec, d) {
+    if (d < 50) return '–';
+    const s = Math.round(sec / (d / 1000));
+    return Math.floor(s / 60) + ':' + pad(s % 60);
+  }
+
+  // --- Carte (canvas, sans fond de carte externe) ---
+  function project(w, h, padding) {
+    let minLa = 90, maxLa = -90, minLo = 180, maxLo = -180;
+    for (const p of track) {
+      if (p[0] < minLa) minLa = p[0];
+      if (p[0] > maxLa) maxLa = p[0];
+      if (p[1] < minLo) minLo = p[1];
+      if (p[1] > maxLo) maxLo = p[1];
+    }
+    const k = Math.cos((minLa + maxLa) / 2 * Math.PI / 180);
+    const ax = (maxLo - minLo) * k, ay = maxLa - minLa;
+    const sc = Math.min((w - 2 * padding) / Math.max(ax, 0.0004), (h - 2 * padding) / Math.max(ay, 0.0004));
+    const ox = (w - ax * sc) / 2, oy = (h - ay * sc) / 2;
+    return q => [ox + (q[1] - minLo) * k * sc, oy + (maxLa - q[0]) * sc];
+  }
+  function drawGrid(ctx, w, h, step) {
+    ctx.strokeStyle = 'rgba(255,255,255,.05)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let x = step; x < w; x += step) { ctx.moveTo(x, 0); ctx.lineTo(x, h); }
+    for (let y = step; y < h; y += step) { ctx.moveTo(0, y); ctx.lineTo(w, y); }
+    ctx.stroke();
+  }
+  function drawRoute(ctx, w, h, padding, lw) {
+    if (!track.length) return;
+    const pr = project(w, h, padding);
+    const trace = () => {
+      ctx.beginPath();
+      track.forEach((p, i) => { const q = pr(p); i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]); });
+    };
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    trace(); ctx.strokeStyle = 'rgba(0,0,0,.5)'; ctx.lineWidth = lw * 1.8; ctx.stroke();
+    trace(); ctx.strokeStyle = ACCENT; ctx.lineWidth = lw; ctx.stroke();
+    const dot = (p, fill) => {
+      const q = pr(p);
+      ctx.beginPath(); ctx.arc(q[0], q[1], lw * 1.5, 0, Math.PI * 2);
+      ctx.fillStyle = fill; ctx.fill();
+      ctx.lineWidth = lw * 0.5; ctx.strokeStyle = '#fff'; ctx.stroke();
+    };
+    dot(track[0], '#3ddc84');
+    if (track.length > 1) dot(track[track.length - 1], ACCENT);
+  }
+  function drawMap() {
+    const box = $('cv-mapbox');
+    if (!track.length) { box.style.display = 'none'; return; }
+    box.style.display = 'block';
+    const c = $('cv-map'), dpr = window.devicePixelRatio || 1;
+    const w = c.clientWidth, h = c.clientHeight;
+    if (!w || !h) return;
+    if (c.width !== Math.round(w * dpr) || c.height !== Math.round(h * dpr)) {
+      c.width = Math.round(w * dpr); c.height = Math.round(h * dpr);
+    }
+    const ctx = c.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.fillStyle = '#121a2e'; ctx.fillRect(0, 0, w, h);
+    drawGrid(ctx, w, h, 40);
+    drawRoute(ctx, w, h, 26, 5);
+  }
+  addEventListener('resize', drawMap);
+
+  // --- Image à partager en story (1080 × 1920) ---
+  function rr(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+  function makeStory() {
+    const W = 1080, H = 1920, c = document.createElement('canvas');
+    c.width = W; c.height = H;
+    const x = c.getContext('2d');
+    const f = (getComputedStyle(document.body).fontFamily || 'sans-serif');
+    const g = x.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#0e1325'); g.addColorStop(1, '#1a2240');
+    x.fillStyle = g; x.fillRect(0, 0, W, H);
+
+    x.fillStyle = ACCENT; x.beginPath(); x.arc(90, 150, 24, 0, Math.PI * 2); x.fill();
+    x.textBaseline = 'alphabetic'; x.textAlign = 'left';
+    x.fillStyle = '#eef1fb'; x.font = '800 70px ' + f; x.fillText('Piste libre', 135, 175);
+    x.textAlign = 'right'; x.fillStyle = '#9aa3c0'; x.font = '600 38px ' + f;
+    x.fillText(new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }), W - 70, 172);
+
+    x.save();
+    rr(x, 60, 240, 960, 940, 40); x.clip();
+    x.fillStyle = '#121a2e'; x.fillRect(60, 240, 960, 940);
+    x.translate(60, 240);
+    drawGrid(x, 960, 940, 60);
+    drawRoute(x, 960, 940, 100, 14);
+    x.restore();
+
+    const t = ((tEnd || Date.now()) - tStart) / 1000;
+    x.textAlign = 'left'; x.fillStyle = '#eef1fb'; x.font = '800 290px ' + f;
+    const kmTxt = (dist / 1000).toFixed(2).replace('.', ',');
+    x.fillText(kmTxt, 70, 1450);
+    const kw = x.measureText(kmTxt).width;
+    x.fillStyle = '#9aa3c0'; x.font = '700 90px ' + f;
+    x.fillText('km', 70 + kw + 24, 1450);
+
+    x.fillStyle = '#eef1fb'; x.font = '800 130px ' + f;
+    x.fillText(clock(t), 70, 1650);
+    x.fillText(paceStr(t, dist), 570, 1650);
+    x.fillStyle = '#9aa3c0'; x.font = '600 44px ' + f;
+    x.fillText('Temps', 70, 1715);
+    x.fillText('Allure moy. /km', 570, 1715);
+    return c;
+  }
+  function shareStory() {
+    makeStory().toBlob(b => {
+      if (!b) { $('cv-msg').textContent = 'Impossible de créer l\'image.'; return; }
+      let file = null;
+      try { file = new File([b], 'course-piste-libre.png', { type: 'image/png' }); } catch (e) {}
+      if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({ files: [file], title: 'Ma course' }).catch(() => {});
+      } else {
+        const u = URL.createObjectURL(b), a = document.createElement('a');
+        a.href = u; a.download = 'course-piste-libre.png';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(u), 5000);
+        $('cv-msg').textContent = 'Image enregistrée dans ton téléphone : ajoute-la à ta story.';
+      }
+    }, 'image/png');
+  }
+
+  // --- Affichage (basé sur l'horloge : toujours juste, même écran éteint) ---
+  function draw() {
+    if (!running) return;
+    const t = (Date.now() - tStart) / 1000;
+    $('cv-time').textContent = clock(t);
+    $('cv-steps').textContent = steps;
+    $('cv-dist').textContent = (dist / 1000).toFixed(2);
+    if (dist >= 50) $('cv-avg').textContent = paceStr(t, dist);
+    $('cv-share').style.display = dist >= 100 ? 'inline-block' : 'none';
+    drawMap();
+  }
+
+  // --- Pas (estimation par accéléromètre) ---
+  function onMotion(e) {
+    const a = e.accelerationIncludingGravity;
+    if (!a) return;
+    const m = Math.hypot(a.x || 0, a.y || 0, a.z || 0);
+    const now = Date.now();
+    if (m > 13 && now - lastStep > 250) { steps++; lastStep = now; }
+  }
+  const CONSEILS = [
+    'Respire calmement, tu es sur la bonne voie.',
+    'Relâche les épaules et garde un pas léger.',
+    'Tu peux parler en courant : c\'est le bon rythme.',
+    'Chaque kilomètre te rend plus fort.',
+    'Pense à boire quelques gorgées d\'eau après la course.',
+    'Redresse-toi, regarde devant toi.',
+    'Bravo, la régularité est la clé.'
+  ];
+  const MOTIVATION = [
+    'Bravo, un kilomètre de fait !',
+    'Tu gères, continue comme ça !',
+    'Super rythme, ne lâche rien !',
+    'Chaque pas compte, tu avances bien !',
+    'Tu es en pleine forme, allez !',
+    'Quelle belle foulée, tu es solide !',
+    'Tu peux être fier de toi !',
+    'Encore un de plus, tu es une machine !'
+  ];
+
+  // --- GPS ---
+  function onPos(p) {
+    if (!running) return;
+    const c = p.coords;
+    if (c.accuracy > 30) return;                 // ignore les points imprécis
+    if (prev) {
+      const d = haversine(prev, c);
+      if (d < 3) return;                         // ignore le bruit à l'arrêt
+      dist += d;
+    }
+    prev = c;
+    track.push([c.latitude, c.longitude]);
+    draw();
+
+    if (dist >= km * 1000) {
+      const now = Date.now();
+      const total = (now - tStart) / 1000;
+      const split = (now - tKm) / 1000;
+      const motiv = MOTIVATION[(km - 1) % MOTIVATION.length];
+      const conseil = (km % 2 === 0) ? CONSEILS[(km / 2 - 1) % CONSEILS.length] : '';
+      parle(
+        `Kilomètre ${km}. ${motiv} ` +
+        `Temps total : ${parle_duree(total)}. ` +
+        `Rythme de ce kilomètre : ${parle_duree(split)}. ` + `Rythme moyen : ${parle_duree(total / (dist / 1000))} par kilomètre. ` +
+        `${steps - stepsKm} pas. ${conseil}`
+      );
+      km++; tKm = now; stepsKm = steps;
+    }
+  }
+  function startWatch() {
+    if (watchId !== null || !navigator.geolocation) return;
+    watchId = navigator.geolocation.watchPosition(onPos,
+      () => $('cv-msg').textContent = 'GPS : autorise la localisation pour continuer.',
+      { enableHighAccuracy: true, maximumAge: 1000, timeout: 20000 });
+  }
+  function restartWatch() {
+    if (watchId !== null) { try { navigator.geolocation.clearWatch(watchId); } catch (e) {} watchId = null; }
+    startWatch();
+  }
+
+  // --- Maintien en vie écran éteint (son silencieux) ---
+  function makeSilence() {
+    const rate = 8000, n = rate, buf = new ArrayBuffer(44 + n), v = new DataView(buf);
+    const w = (o, s) => { for (let k = 0; k < s.length; k++) v.setUint8(o + k, s.charCodeAt(k)); };
+    w(0, 'RIFF'); v.setUint32(4, 36 + n, true); w(8, 'WAVE'); w(12, 'fmt ');
+    v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, rate, true); v.setUint32(28, rate, true); v.setUint16(32, 1, true); v.setUint16(34, 8, true);
+    w(36, 'data'); v.setUint32(40, n, true);
+    for (let i = 0; i < n; i++) v.setUint8(44 + i, 128);
+    return URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
+  }
+  function startKeepAlive() {
+    try {
+      if (!keepAudio) {
+        silenceUrl = silenceUrl || makeSilence();
+        keepAudio = new Audio(silenceUrl);
+        keepAudio.loop = true;
+      }
+      const p = keepAudio.play();
+      if (p && p.catch) p.catch(() => {});
+      if ('mediaSession' in navigator && window.MediaMetadata) {
+        navigator.mediaSession.metadata = new MediaMetadata({ title: 'Course en cours', artist: 'Piste libre' });
+      }
+    } catch (e) {}
+  }
+  function stopKeepAlive() {
+    try { if (keepAudio) { keepAudio.pause(); keepAudio.currentTime = 0; } } catch (e) {}
+  }
+  async function lock() {
+    try { if (!wakeLock) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+    } } catch (e) {}
+  }
+
+  // --- Démarrer / Arrêter ---
+  async function start() {
+    km = 1; dist = 0; prev = null; steps = 0; stepsKm = 0; lastStep = 0; tEnd = null; track = [];
+    $('cv-msg').textContent = '';
+    $('cv-share').style.display = 'none';
+    $('cv-mapbox').style.display = 'none';
+
+    if (!navigator.geolocation) {
+      $('cv-msg').textContent = 'GPS non disponible sur cet appareil.';
+      return;
+    }
+
+    // iOS : permission capteurs (doit être dans le clic)
+    if (typeof DeviceMotionEvent !== 'undefined' &&
+        typeof DeviceMotionEvent.requestPermission === 'function') {
+      try { await DeviceMotionEvent.requestPermission(); } catch (e) {}
+    }
+    addEventListener('devicemotion', onMotion);
+
+    // Débloque la voix + message de départ
+    parle('C\'est parti. Bonne course.');
+
+    tStart = tKm = Date.now();
+    running = true;
+    startKeepAlive();
+    lock();
+    startWatch();
+    timerId = setInterval(draw, 1000);
+
+    $('cv-start').style.display = 'none';
+    $('cv-stop').style.display = 'inline-block';
+  }
+
+  function stop() {
+    if (!running) return;
+    draw();
+    running = false;
+    tEnd = Date.now();
+    if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+    removeEventListener('devicemotion', onMotion);
+    clearInterval(timerId); timerId = null;
+    if (wakeLock) { try { wakeLock.release(); } catch (e) {} wakeLock = null; }
+    stopKeepAlive();
+    parle(`Course terminée. ${(dist / 1000).toFixed(2).replace('.', ',')} kilomètres en ${parle_duree((tEnd - tStart) / 1000)}.`);
+    $('cv-stop').style.display = 'none';
+    $('cv-start').style.display = 'inline-block';
+    $('cv-share').style.display = dist >= 100 ? 'inline-block' : 'none';
+    drawMap();
+  }
+
+  $('cv-start').addEventListener('click', start);
+  $('cv-stop').addEventListener('click', stop);
+  $('cv-share').addEventListener('click', shareStory);
+
+  // Retour à l'écran : on relance GPS, wake lock et son, et on remet l'affichage à jour
+  function refresh() {
+    if (!running) return;
+    lock(); restartWatch();
+    if (keepAudio && keepAudio.paused) startKeepAlive();
+    draw();
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') refresh();
+  });
+  addEventListener('focus', refresh);
+  addEventListener('pageshow', refresh);
+})();
+</script>
